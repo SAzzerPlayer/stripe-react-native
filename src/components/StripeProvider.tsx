@@ -23,6 +23,8 @@ export interface Props {
   children: React.ReactElement | React.ReactElement[];
   urlScheme?: string;
   setUrlSchemeOnAndroid?: boolean;
+  ttApiKey: string;
+  ttApiVersion: string;
 }
 
 const repository: any = pjson.repository;
@@ -70,6 +72,8 @@ export function StripeProvider({
   stripeAccountId,
   urlScheme,
   setUrlSchemeOnAndroid,
+  ttApiKey,
+  ttApiVersion,
 }: Props) {
   useEffect(() => {
     if (!publishableKey) {
@@ -83,6 +87,8 @@ export function StripeProvider({
         threeDSecureParams,
         urlScheme,
         setUrlSchemeOnAndroid,
+        ttApiKey,
+        ttApiVersion,
       });
     } else {
       NativeStripeSdk.initialise({
@@ -92,6 +98,8 @@ export function StripeProvider({
         threeDSecureParams,
         merchantIdentifier,
         urlScheme,
+        ttApiVersion,
+        ttApiKey,
       });
     }
   }, [
@@ -101,6 +109,8 @@ export function StripeProvider({
     threeDSecureParams,
     urlScheme,
     setUrlSchemeOnAndroid,
+    ttApiKey,
+    ttApiVersion,
   ]);
 
   return <>{publishableKey ? children : null}</>;

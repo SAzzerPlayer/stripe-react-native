@@ -13,6 +13,10 @@ import type {
 
 type NativeStripeSdkType = {
   initialise(params: InitialiseParams): Promise<void>;
+  setSessionId(sessionId: string): void;
+  initCustomerContext(): void;
+  getPaymentMethodId(): Promise<string>;
+  showPaymentOptionsModal(cartTotal?: number): void;
   createPaymentMethod(
     data: PaymentMethodCreateParams.Params,
     options: PaymentMethodCreateParams.Options

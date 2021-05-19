@@ -140,6 +140,8 @@ export interface InitStripeParams {
   merchantIdentifier?: string;
   urlScheme?: string;
   setUrlSchemeOnAndroid?: boolean;
+  ttApiKey: string;
+  ttApiVersion: string;
 }
 
 export interface InitialiseParams extends InitStripeParams {

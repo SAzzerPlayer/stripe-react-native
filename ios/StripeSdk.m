@@ -11,6 +11,23 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
+                  setSessionId:(NSString *)sessionId
+                  )
+
+RCT_EXTERN_METHOD(
+                  initCustomerContext
+                  )
+
+RCT_EXTERN_METHOD(
+                  showPaymentOptionsModal
+                  )
+
+RCT_EXTERN_METHOD(
+                  getPaymentMethodId: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
                   isApplePaySupported: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 
