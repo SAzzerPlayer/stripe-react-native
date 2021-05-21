@@ -13,6 +13,14 @@ import type {
 
 type NativeStripeSdkType = {
   initialise(params: InitialiseParams): Promise<void>;
+  setSessionId(sessionId: string): void;
+  initCustomerContext(): Promise<boolean>;
+  getPaymentMethodId(items?: ApplePay.CartSummaryItem[]): Promise<string>;
+  paymentRequestWithApplePay(
+    items: ApplePay.CartSummaryItem[],
+    options: any
+  ): Promise<void>;
+  showPaymentOptionsModal(cartTotal?: number): void;
   createPaymentMethod(
     data: PaymentMethodCreateParams.Params,
     options: PaymentMethodCreateParams.Options

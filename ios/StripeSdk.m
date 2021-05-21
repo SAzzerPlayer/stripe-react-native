@@ -11,6 +11,25 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
+                  setSessionId:(NSString *)sessionId
+                  )
+
+RCT_EXTERN_METHOD(
+                  initCustomerContext: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
+                  showPaymentOptionsModal
+                  )
+
+RCT_EXTERN_METHOD(
+                  getPaymentMethodId:(NSArray *)summaryItems
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
                   isApplePaySupported: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 
@@ -23,6 +42,13 @@ RCT_EXTERN_METHOD(
                   updateApplePaySummaryItems:(NSArray *)summaryItems
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(
+                  paymentRequestWithApplePay:(NSArray *)summaryItems
+                  withOptions: (NSDictionary *)options
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+)
 
 RCT_EXTERN_METHOD(
                   createTokenForCVCUpdate:(NSString *)cvc

@@ -19,6 +19,14 @@
 		24FF2C37256530F9002FF847 /* CardFieldManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24FF2C36256530F9002FF847 /* CardFieldManager.swift */; };
 		24FF2C3925653109002FF847 /* CardFieldManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 24FF2C3825653109002FF847 /* CardFieldManager.m */; };
 		24FF2C3B25653114002FF847 /* CardFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24FF2C3A25653114002FF847 /* CardFieldView.swift */; };
+		55136A4C2653F71E0079DC3F /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55136A442653F71E0079DC3F /* Errors.swift */; };
+		55136A4D2653F71E0079DC3F /* TTApiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55136A452653F71E0079DC3F /* TTApiClient.swift */; };
+		55136A4E2653F71E0079DC3F /* AuBECSDebitFormManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 55136A462653F71E0079DC3F /* AuBECSDebitFormManager.m */; };
+		55136A4F2653F71E0079DC3F /* AuBECSDebitFormManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55136A472653F71E0079DC3F /* AuBECSDebitFormManager.swift */; };
+		55136A502653F71E0079DC3F /* AuBECSDebitFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55136A482653F71E0079DC3F /* AuBECSDebitFormView.swift */; };
+		55136A512653F71E0079DC3F /* Mappers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55136A492653F71E0079DC3F /* Mappers.swift */; };
+		55136A522653F71E0079DC3F /* StripeSdk.m in Sources */ = {isa = PBXBuildFile; fileRef = 55136A4A2653F71E0079DC3F /* StripeSdk.m */; };
+		55136A532653F71E0079DC3F /* StripeSdk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55136A4B2653F71E0079DC3F /* StripeSdk.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -47,6 +55,14 @@
 		24FF2C36256530F9002FF847 /* CardFieldManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardFieldManager.swift; sourceTree = "<group>"; };
 		24FF2C3825653109002FF847 /* CardFieldManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CardFieldManager.m; sourceTree = "<group>"; };
 		24FF2C3A25653114002FF847 /* CardFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardFieldView.swift; sourceTree = "<group>"; };
+		55136A442653F71E0079DC3F /* Errors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
+		55136A452653F71E0079DC3F /* TTApiClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TTApiClient.swift; sourceTree = "<group>"; };
+		55136A462653F71E0079DC3F /* AuBECSDebitFormManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AuBECSDebitFormManager.m; sourceTree = "<group>"; };
+		55136A472653F71E0079DC3F /* AuBECSDebitFormManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuBECSDebitFormManager.swift; sourceTree = "<group>"; };
+		55136A482653F71E0079DC3F /* AuBECSDebitFormView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuBECSDebitFormView.swift; sourceTree = "<group>"; };
+		55136A492653F71E0079DC3F /* Mappers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mappers.swift; sourceTree = "<group>"; };
+		55136A4A2653F71E0079DC3F /* StripeSdk.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StripeSdk.m; sourceTree = "<group>"; };
+		55136A4B2653F71E0079DC3F /* StripeSdk.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StripeSdk.swift; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* StripeSdk-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StripeSdk-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -72,6 +88,14 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				55136A462653F71E0079DC3F /* AuBECSDebitFormManager.m */,
+				55136A472653F71E0079DC3F /* AuBECSDebitFormManager.swift */,
+				55136A482653F71E0079DC3F /* AuBECSDebitFormView.swift */,
+				55136A442653F71E0079DC3F /* Errors.swift */,
+				55136A492653F71E0079DC3F /* Mappers.swift */,
+				55136A4A2653F71E0079DC3F /* StripeSdk.m */,
+				55136A4B2653F71E0079DC3F /* StripeSdk.swift */,
+				55136A452653F71E0079DC3F /* TTApiClient.swift */,
 				24EA331B26244898007AF858 /* BECSDebitFormManager.m */,
 				24EA32E5262446E6007AF858 /* BECSDebitFormView.swift */,
 				24EA32E2262446DC007AF858 /* BECSDebitFormManager.swift */,
@@ -147,17 +171,25 @@
 			buildActionMask = 2147483647;
 			files = (
 				24172CD126284587005FB3C6 /* CardFieldDelegate.swift in Sources */,
+				55136A522653F71E0079DC3F /* StripeSdk.m in Sources */,
+				55136A4F2653F71E0079DC3F /* AuBECSDebitFormManager.swift in Sources */,
+				55136A512653F71E0079DC3F /* Mappers.swift in Sources */,
 				24FF2C37256530F9002FF847 /* CardFieldManager.swift in Sources */,
 				24FF2C3925653109002FF847 /* CardFieldManager.m in Sources */,
 				24FF2C3B25653114002FF847 /* CardFieldView.swift in Sources */,
+				55136A4E2653F71E0079DC3F /* AuBECSDebitFormManager.m in Sources */,
 				24EA331C26244898007AF858 /* BECSDebitFormManager.m in Sources */,
 				2490F52F256D0B5A0027A42B /* ApplePayButtonManager.m in Sources */,
 				247D86412601DC7400EBE2C2 /* PaymentMethodFactory.swift in Sources */,
+				55136A532653F71E0079DC3F /* StripeSdk.swift in Sources */,
+				55136A4C2653F71E0079DC3F /* Errors.swift in Sources */,
 				2490F52D256D08FB0027A42B /* ApplePayButtonManager.swift in Sources */,
+				55136A4D2653F71E0079DC3F /* TTApiClient.swift in Sources */,
 				24EA32E6262446E6007AF858 /* BECSDebitFormView.swift in Sources */,
 				249BA096256CF67B00B32764 /* UIColorExtension.swift in Sources */,
 				2490F531256D1EDA0027A42B /* ApplePayButtonView.swift in Sources */,
 				24EA32E3262446DC007AF858 /* BECSDebitFormManager.swift in Sources */,
+				55136A502653F71E0079DC3F /* AuBECSDebitFormView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

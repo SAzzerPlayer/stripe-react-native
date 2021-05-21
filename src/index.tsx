@@ -1,4 +1,6 @@
 // hooks
+import { NativeEventEmitter, NativeModules } from 'react-native';
+
 export { useConfirmPayment } from './hooks/useConfirmPayment';
 export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
 export { useStripe } from './hooks/useStripe';
@@ -21,6 +23,7 @@ export {
   Props as AuBECSDebitFormProps,
 } from './components/AuBECSDebitForm';
 
+export const events = new NativeEventEmitter(NativeModules.StripeSdk);
 export * from './functions';
 
 export * from './types/index';

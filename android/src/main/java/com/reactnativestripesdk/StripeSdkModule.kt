@@ -9,12 +9,22 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
+import androidx.annotation.Nullable
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.wallet.*
+import com.google.android.gms.wallet.Wallet.getPaymentsClient
 import com.stripe.android.*
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
+import kotlin.coroutines.EmptyCoroutineContext
 
 
 class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: StripeSdkCardViewManager) : ReactContextBaseJavaModule(reactContext) {
@@ -37,91 +47,125 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   private var confirmPaymentSheetPaymentPromise: Promise? = null
   private var presentPaymentSheetPromise: Promise? = null
   private var initPaymentSheetPromise: Promise? = null
+  private var ttKeyProvider: TTKeyProvider = TTKeyProvider()
+  private lateinit var paymentSession: PaymentSession
+
+  private var isSupportsGooglePay: Boolean = false
+  private var lastPaymentMethodId: String? = ""
+  private var lastIsGooglePayUsed: Boolean = false
+  private var getPaymentMethodIdPromise: Promise? = null
 
   private var confirmPaymentClientSecret: String? = null
 
+  private lateinit var googlePayHelper: GooglePayHelper
+
+
   private val mActivityEventListener = object : BaseActivityEventListener() {
-    override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent) {
-      stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
-        override fun onSuccess(result: SetupIntentResult) {
-          val setupIntent = result.intent
-          when (setupIntent.status) {
-            StripeIntent.Status.Succeeded -> {
-              confirmSetupIntentPromise?.resolve(mapFromSetupIntentResult(setupIntent))
-            }
-            StripeIntent.Status.Canceled -> {
-              val errorMessage = setupIntent.lastSetupError?.message.orEmpty()
-              confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Canceled.toString(), errorMessage)
-            }
-            else -> {
-              val errorMessage = "unhandled error: ${setupIntent.status}"
-              confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Unknown.toString(), errorMessage)
-            }
-          }
-        }
-
-        override fun onError(e: Exception) {
-          confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Failed.toString(), e.message.orEmpty())
-        }
-      })
-
-      stripe.onPaymentResult(requestCode, data, object : ApiResultCallback<PaymentIntentResult> {
-        override fun onSuccess(result: PaymentIntentResult) {
-          val paymentIntent = result.intent
-
-          when (paymentIntent.status) {
-            StripeIntent.Status.Succeeded,
-            StripeIntent.Status.Processing,
-            StripeIntent.Status.RequiresCapture -> {
-              confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
-              handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
-            }
-            StripeIntent.Status.RequiresAction -> {
-              if (isPaymentIntentNextActionVoucherBased(paymentIntent.nextActionType)) {
-                confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
-                handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
-              } else {
-                val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
-                confirmPromise?.reject(ConfirmPaymentErrorType.Canceled.toString(), errorMessage)
-                handleCardActionPromise?.reject(NextPaymentActionErrorType.Canceled.toString(), errorMessage)
+    override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
+      when (requestCode) {
+        LOAD_PAYMENT_DATA_REQUEST_CODE -> {
+          when (resultCode) {
+            Activity.RESULT_OK -> {
+              if (data != null) {
+                handleGooglePayResult(data)
               }
             }
-            StripeIntent.Status.RequiresPaymentMethod -> {
-              val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
-              confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), errorMessage)
-              handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), errorMessage)
+            Activity.RESULT_CANCELED -> {
+              getPaymentMethodIdPromise?.reject("0", "Request was canceled")
             }
-            StripeIntent.Status.RequiresConfirmation -> {
-              handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
-            }
-            StripeIntent.Status.Canceled -> {
-              val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
-              confirmPromise?.reject(ConfirmPaymentErrorType.Canceled.toString(), errorMessage)
-              handleCardActionPromise?.reject(NextPaymentActionErrorType.Canceled.toString(), errorMessage)
+            AutoResolveHelper.RESULT_ERROR -> {
+              val status = AutoResolveHelper.getStatusFromIntent(data)
+              getPaymentMethodIdPromise?.reject("2", "Cannot get payment method id")
             }
             else -> {
-              val errorMessage = "unhandled error: ${paymentIntent.status}"
-              confirmPromise?.reject(ConfirmPaymentErrorType.Unknown.toString(), errorMessage)
-              handleCardActionPromise?.reject(NextPaymentActionErrorType.Unknown.toString(), errorMessage)
+              // Do nothing.
             }
           }
         }
+        else -> {
+          paymentSession.handlePaymentData(requestCode, resultCode, data)
+          stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
+            override fun onSuccess(result: SetupIntentResult) {
+              val setupIntent = result.intent
+              when (setupIntent.status) {
+                StripeIntent.Status.Succeeded -> {
+                  confirmSetupIntentPromise?.resolve(mapFromSetupIntentResult(setupIntent))
+                }
+                StripeIntent.Status.Canceled -> {
+                  val errorMessage = setupIntent.lastSetupError?.message.orEmpty()
+                  confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Canceled.toString(), errorMessage)
+                }
+                else -> {
+                  val errorMessage = "unhandled error: ${setupIntent.status}"
+                  confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Unknown.toString(), errorMessage)
+                }
+              }
+            }
 
-        override fun onError(e: Exception) {
-          confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), e.toString())
-          handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), e.toString())
+            override fun onError(e: Exception) {
+              confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Failed.toString(), e.message.orEmpty())
+            }
+          })
+
+          stripe.onPaymentResult(requestCode, data, object : ApiResultCallback<PaymentIntentResult> {
+            override fun onSuccess(result: PaymentIntentResult) {
+              val paymentIntent = result.intent
+
+              when (paymentIntent.status) {
+                StripeIntent.Status.Succeeded,
+                StripeIntent.Status.Processing,
+                StripeIntent.Status.RequiresCapture -> {
+                  confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+                  handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+                }
+                StripeIntent.Status.RequiresAction -> {
+                  if (isPaymentIntentNextActionVoucherBased(paymentIntent.nextActionType)) {
+                    confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+                    handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+                  } else {
+                    val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
+                    confirmPromise?.reject(ConfirmPaymentErrorType.Canceled.toString(), errorMessage)
+                    handleCardActionPromise?.reject(NextPaymentActionErrorType.Canceled.toString(), errorMessage)
+                  }
+                }
+                StripeIntent.Status.RequiresPaymentMethod -> {
+                  val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
+                  confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), errorMessage)
+                  handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), errorMessage)
+                }
+                StripeIntent.Status.RequiresConfirmation -> {
+                  handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+                }
+                StripeIntent.Status.Canceled -> {
+                  val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
+                  confirmPromise?.reject(ConfirmPaymentErrorType.Canceled.toString(), errorMessage)
+                  handleCardActionPromise?.reject(NextPaymentActionErrorType.Canceled.toString(), errorMessage)
+                }
+                else -> {
+                  val errorMessage = "unhandled error: ${paymentIntent.status}"
+                  confirmPromise?.reject(ConfirmPaymentErrorType.Unknown.toString(), errorMessage)
+                  handleCardActionPromise?.reject(NextPaymentActionErrorType.Unknown.toString(), errorMessage)
+                }
+              }
+            }
+
+            override fun onError(e: Exception) {
+              confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), e.toString())
+              handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), e.toString())
+            }
+          })
+
+          paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+
+          try {
+            val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
+            if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
+              onFpxPaymentMethodResult(result)
+            }
+          } catch (e: java.lang.Exception) {
+            Log.d("Error", e.localizedMessage)
+          }
         }
-      })
-
-      paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
-
-      try {
-        val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
-        if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
-          onFpxPaymentMethodResult(result)
-        }
-      } catch (e: java.lang.Exception) {
-        Log.d("Error", e.localizedMessage)
       }
     }
   }
@@ -130,6 +174,36 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
   init {
     reactContext.addActivityEventListener(mActivityEventListener);
+  }
+
+  private fun sendEvent(reactContext: ReactContext,
+                        eventName: String,
+                        @Nullable params: WritableMap) {
+    reactContext
+      .getJSModule(RCTDeviceEventEmitter::class.java)
+      .emit(eventName, params)
+  }
+
+  private fun handleGooglePayResult(data: Intent) {
+    val paymentData = PaymentData.getFromIntent(data) ?: return
+    val paymentDataJson = JSONObject(paymentData.toJson())
+
+
+    CoroutineScope(EmptyCoroutineContext).launch {
+      runCatching {
+        stripe.createPaymentMethod(
+          PaymentMethodCreateParams.createFromGooglePay(paymentDataJson)
+        )
+      }.fold(
+        onSuccess = {
+          getPaymentMethodIdPromise?.resolve(it.id)
+        },
+        onFailure = {
+          getPaymentMethodIdPromise?.reject("Exception while creating PaymentMethod", it)
+          Log.e("HGPR", "Exception while creating PaymentMethod", it)
+        }
+      )
+    }
   }
 
   private fun configure3dSecure(params: ReadableMap) {
@@ -218,6 +292,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val stripeAccountId = getValOr(params, "stripeAccountId", null)
     val urlScheme = getValOr(params, "urlScheme", null)
     val setUrlSchemeOnAndroid = getBooleanOrFalse(params, "setUrlSchemeOnAndroid")
+    val ttApiKey = getValOr(params, "ttApiKey", "")
+    val ttApiVersion = getValOr(params, "ttApiVersion")
+
     this.urlScheme = if (setUrlSchemeOnAndroid) urlScheme else null
 
     getMapOrNull(params, "threeDSecureParams")?.let {
@@ -234,6 +311,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
 
+    googlePayHelper = GooglePayHelper(
+      currentActivity as AppCompatActivity,
+      GooglePayConfig(reactApplicationContext).tokenizationSpecification)
+
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_RESULT_ACTION));
@@ -241,7 +322,107 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_FRAGMENT_CREATED));
 
+    ttKeyProvider.setTTApiKey(ttApiKey)
+    ttKeyProvider.setTTApiVersion(ttApiVersion)
+    isReadyToPay()
     promise.resolve(null)
+  }
+
+  private fun isReadyToPay() {
+    googlePayHelper.paymentsClient.isReadyToPay(googlePayHelper.createIsReadyToPayRequest())
+      .addOnCompleteListener { task ->
+        try {
+          isSupportsGooglePay = task.isSuccessful
+        } catch (exception: ApiException) {
+        }
+      }
+  }
+
+  @ReactMethod
+  fun payWithGoogle() {
+    AutoResolveHelper.resolveTask(
+      googlePayHelper.paymentsClient.loadPaymentData(googlePayHelper.createPaymentDataRequest()),
+      currentActivity as AppCompatActivity,
+      LOAD_PAYMENT_DATA_REQUEST_CODE
+    )
+  }
+
+  companion object {
+    private const val LOAD_PAYMENT_DATA_REQUEST_CODE = 53
+  }
+
+  @ReactMethod
+  fun setSessionId(_sessionId: String) {
+    ttKeyProvider?.setSessionId(_sessionId);
+  }
+
+  @ReactMethod
+  fun initCustomerContext(promise: Promise) {
+    ttKeyProvider.setPromise(promise)
+      CustomerSession.initCustomerSession(
+        reactApplicationContext,
+        ttKeyProvider,
+        true
+      )
+  }
+
+  @ReactMethod
+  fun showPaymentOptionsModal(cartTotal: Double) {
+    UiThreadUtil.runOnUiThread {
+      val activity = currentActivity as AppCompatActivity
+
+      paymentSession = PaymentSession(
+        activity,
+        PaymentSessionConfig.Builder()
+          .setShippingInfoRequired(false)
+          .setShouldShowGooglePay(true)
+          .setShippingMethodsRequired(false)
+          .build()
+      )
+      paymentSession.setCartTotal(cartTotal.toLong())
+      googlePayHelper.totalPrice = cartTotal.toString()
+
+      paymentSession.init(
+        object : PaymentSession.PaymentSessionListener {
+          override fun onCommunicatingStateChanged(isCommunicating: Boolean) {
+            // update UI, such as hiding or showing a progress bar
+          }
+
+          override fun onError(errorCode: Int, errorMessage: String) {
+            // handle error
+          }
+
+          override fun onPaymentSessionDataChanged(data: PaymentSessionData) {
+            val paymentMethod: PaymentMethod? = data.paymentMethod
+            if (paymentMethod !== null || data.useGooglePay) {
+
+              lastIsGooglePayUsed = data.useGooglePay
+              lastPaymentMethodId = paymentMethod?.id
+              val params = Arguments.createMap()
+              params.putString("methodId", paymentMethod?.id)
+              params.putString("label", ""+paymentMethod?.card?.brand+" "+paymentMethod?.card?.last4)
+              params.putString("image", "")
+              params.putBoolean("useGooglePay", data.useGooglePay)
+              params.putBoolean("useApplePay", false)
+
+              sendEvent(reactApplicationContext, "onDidSelectPaymentMethod", params)
+            }
+          }
+        }
+      )
+
+      paymentSession.presentPaymentMethodSelection()
+    }
+  }
+
+  @ReactMethod
+  fun getPaymentMethodId(promise: Promise) {
+    if(!lastIsGooglePayUsed) {
+      promise.resolve(lastPaymentMethodId)
+    } else {
+      getPaymentMethodIdPromise = promise
+      payWithGoogle()
+    }
   }
 
   @ReactMethod

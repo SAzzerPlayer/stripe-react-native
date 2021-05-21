@@ -21,6 +21,36 @@ import {
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
 
+export const setSessionId = (sessionId: string) => {
+  NativeStripeSdk.setSessionId(sessionId);
+};
+
+export const initCustomerContext = async () => {
+  return NativeStripeSdk.initCustomerContext();
+};
+
+export const showPaymentOptionsModal = (cartTotal: number) => {
+  if (isiOS) {
+    NativeStripeSdk.showPaymentOptionsModal();
+  } else {
+    NativeStripeSdk.showPaymentOptionsModal(cartTotal);
+  }
+};
+
+export const getPaymentMethodId = (items: ApplePay.CartSummaryItem[]) => {
+  if (isiOS) {
+    return NativeStripeSdk.getPaymentMethodId(items);
+  }
+  return NativeStripeSdk.getPaymentMethodId();
+};
+
+export const paymentRequestWithApplePay = async (
+  items: ApplePay.CartSummaryItem[],
+  options: any
+): Promise<void> => {
+  return NativeStripeSdk.paymentRequestWithApplePay(items, options);
+};
+
 export const createPaymentMethod = async (
   data: PaymentMethodCreateParams.Params,
   options: PaymentMethodCreateParams.Options = {}
