@@ -15,7 +15,6 @@ import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.wallet.*
-import com.google.android.gms.wallet.Wallet.getPaymentsClient
 import com.stripe.android.*
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
@@ -54,6 +53,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   private var lastPaymentMethodId: String? = ""
   private var lastIsGooglePayUsed: Boolean = false
   private var getPaymentMethodIdPromise: Promise? = null
+  private var showNativePay: Boolean = false
 
   private var confirmPaymentClientSecret: String? = null
 
@@ -294,6 +294,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val setUrlSchemeOnAndroid = getBooleanOrFalse(params, "setUrlSchemeOnAndroid")
     val ttApiKey = getValOr(params, "ttApiKey", "")
     val ttApiVersion = getValOr(params, "ttApiVersion")
+    val googlePayEnvironment = getValOr(params, "googlePayEnvironment", null)
+    showNativePay = getBooleanOrFalse(params, "showNativePay")
 
     this.urlScheme = if (setUrlSchemeOnAndroid) urlScheme else null
 
@@ -313,7 +315,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
     googlePayHelper = GooglePayHelper(
       currentActivity as AppCompatActivity,
-      GooglePayConfig(reactApplicationContext).tokenizationSpecification)
+      GooglePayConfig(reactApplicationContext).tokenizationSpecification,
+      if (googlePayEnvironment.equals("test")) WalletConstants.ENVIRONMENT_TEST else WalletConstants.ENVIRONMENT_PRODUCTION
+      )
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 
@@ -375,7 +379,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         activity,
         PaymentSessionConfig.Builder()
           .setShippingInfoRequired(false)
-          .setShouldShowGooglePay(true)
+          .setShouldShowGooglePay(showNativePay && isSupportsGooglePay)
           .setShippingMethodsRequired(false)
           .build()
       )

@@ -7,7 +7,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 class GooglePayHelper(private val activity: AppCompatActivity,
-                      private val tokenSpecs: JSONObject) {
+                      private val tokenSpecs: JSONObject,
+                      private val env: Int) {
 
   var totalPrice: String? = ""
 
@@ -15,7 +16,7 @@ class GooglePayHelper(private val activity: AppCompatActivity,
     Wallet.getPaymentsClient(
       activity,
       Wallet.WalletOptions.Builder()
-        .setEnvironment(WalletConstants.ENVIRONMENT_TEST)
+        .setEnvironment(env)
         .build()
     )
   }

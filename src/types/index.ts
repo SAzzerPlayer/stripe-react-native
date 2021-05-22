@@ -142,6 +142,8 @@ export interface InitStripeParams {
   setUrlSchemeOnAndroid?: boolean;
   ttApiKey: string;
   ttApiVersion: string;
+  showNativePay: boolean;
+  googlePayEnvironment?: 'test' | 'prod';
 }
 
 export interface InitialiseParams extends InitStripeParams {

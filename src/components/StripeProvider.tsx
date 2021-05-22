@@ -25,6 +25,8 @@ export interface Props {
   setUrlSchemeOnAndroid?: boolean;
   ttApiKey: string;
   ttApiVersion: string;
+  showNativePay: boolean;
+  googlePayEnvironment: 'test' | 'prod';
 }
 
 const repository: any = pjson.repository;
@@ -74,6 +76,8 @@ export function StripeProvider({
   setUrlSchemeOnAndroid,
   ttApiKey,
   ttApiVersion,
+  googlePayEnvironment,
+  showNativePay,
 }: Props) {
   useEffect(() => {
     if (!publishableKey) {
@@ -89,6 +93,8 @@ export function StripeProvider({
         setUrlSchemeOnAndroid,
         ttApiKey,
         ttApiVersion,
+        showNativePay,
+        googlePayEnvironment,
       });
     } else {
       NativeStripeSdk.initialise({
@@ -100,6 +106,7 @@ export function StripeProvider({
         urlScheme,
         ttApiVersion,
         ttApiKey,
+        showNativePay,
       });
     }
   }, [
@@ -111,6 +118,8 @@ export function StripeProvider({
     setUrlSchemeOnAndroid,
     ttApiKey,
     ttApiVersion,
+    showNativePay,
+    googlePayEnvironment,
   ]);
 
   return <>{publishableKey ? children : null}</>;

@@ -33,6 +33,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
 
     var confirmPaymentClientSecret: String? = nil
 
+    var showNativePay: Bool = false
+
     var appleAuthCompletion: ((PKPaymentAuthorizationResult) -> Void)?
 
     var shippingMethodUpdateHandler: ((PKPaymentRequestShippingMethodUpdate) -> Void)? = nil
@@ -56,6 +58,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let merchantIdentifier = params["merchantIdentifier"] as? String
         let ttApiKey = params["ttApiKey"] as? String
         let ttApiVersion = params["ttApiVersion"] as? String
+        showNativePay = params["showNativePay"] as? Bool ?? false
 
         if let params3ds = params3ds {
             configure3dSecure(params3ds)
@@ -99,7 +102,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             let viewController = UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()
 
             let paymentConfig = STPPaymentConfiguration()
-            paymentConfig.applePayEnabled = true
+            paymentConfig.applePayEnabled = self.showNativePay
             paymentConfig.appleMerchantIdentifier = self.merchantIdentifier
 
             self.paymentContext = STPPaymentContext.init(customerContext: self.customerContext!, configuration: paymentConfig, theme: STPTheme.defaultTheme)

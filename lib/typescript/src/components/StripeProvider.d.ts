@@ -13,6 +13,8 @@ export interface Props {
     setUrlSchemeOnAndroid?: boolean;
     ttApiKey: string;
     ttApiVersion: string;
+    showNativePay: boolean;
+    googlePayEnvironment: 'test' | 'prod';
 }
 export declare const initStripe: (params: InitStripeParams) => Promise<void>;
 /**
@@ -35,4 +37,4 @@ export declare const initStripe: (params: InitStripeParams) => Promise<void>;
  * @returns JSX.Element
  * @category ReactComponents
  */
-export declare function StripeProvider({ children, publishableKey, merchantIdentifier, threeDSecureParams, stripeAccountId, urlScheme, setUrlSchemeOnAndroid, ttApiKey, ttApiVersion, }: Props): JSX.Element;
+export declare function StripeProvider({ children, publishableKey, merchantIdentifier, threeDSecureParams, stripeAccountId, urlScheme, setUrlSchemeOnAndroid, ttApiKey, ttApiVersion, googlePayEnvironment, showNativePay, }: Props): JSX.Element;
