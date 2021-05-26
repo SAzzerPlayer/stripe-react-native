@@ -313,6 +313,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
 
+    PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
+    
     googlePayHelper = GooglePayHelper(
       currentActivity as AppCompatActivity,
       GooglePayConfig(reactApplicationContext).tokenizationSpecification,
@@ -362,6 +364,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
   @ReactMethod
   fun initCustomerContext(promise: Promise) {
+    PaymentConfiguration.init(reactApplicationContext, this.publishableKey)
     ttKeyProvider.setPromise(promise)
       CustomerSession.initCustomerSession(
         reactApplicationContext,
