@@ -21,7 +21,6 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\"",
-    "prepare": "bob build",
     "release": "./scripts/publish",
     "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --theme minimal --theme ./docs/stripe-theme",
     "test:ios": "node ./run-appium-tests.js ios",
