@@ -321,8 +321,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       if (googlePayEnvironment.equals("test")) WalletConstants.ENVIRONMENT_TEST else WalletConstants.ENVIRONMENT_PRODUCTION
       )
 
-    PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
-
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_RESULT_ACTION));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_OPTION_ACTION));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
@@ -364,7 +362,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
   @ReactMethod
   fun initCustomerContext(promise: Promise) {
-    PaymentConfiguration.init(reactApplicationContext, this.publishableKey)
     ttKeyProvider.setPromise(promise)
       CustomerSession.initCustomerSession(
         reactApplicationContext,
