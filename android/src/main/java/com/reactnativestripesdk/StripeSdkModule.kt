@@ -84,8 +84,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
           }
         }
         else -> {
-          paymentSession.handlePaymentData(requestCode, resultCode, data)
           if (::stripe.isInitialized) {
+            paymentSession.handlePaymentData(requestCode, resultCode, data)
             stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
               override fun onSuccess(result: SetupIntentResult) {
                 val setupIntent = result.intent
