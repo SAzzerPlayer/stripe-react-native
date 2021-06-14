@@ -18,7 +18,9 @@ export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   type?: ApplePayButtonComponent.Types;
   buttonStyle?: ApplePayButtonComponent.Styles;
+  borderRadius?: number;
   onPress(): void;
+  testID?: string;
 }
 
 /**
@@ -30,6 +32,7 @@ export interface Props extends AccessibilityProps {
  *    onPress={pay}
  *    type="plain"
  *    buttonStyle="black"
+ *    borderRadius={4}
  *    style={styles.payButton}
  *  />
  * ```
@@ -41,6 +44,7 @@ export function ApplePayButton({
   onPress,
   buttonStyle = 'black',
   type = 'plain',
+  borderRadius = 4,
   ...props
 }: Props) {
   const buttonType = useMemo(() => mapButtonType(type), [type]);
@@ -50,6 +54,7 @@ export function ApplePayButton({
     <ApplePayButtonNative
       type={buttonType}
       buttonStyle={style}
+      borderRadius={borderRadius}
       onPressAction={onPress}
       {...props}
     />

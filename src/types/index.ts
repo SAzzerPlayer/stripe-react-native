@@ -1,11 +1,14 @@
+import type { Card } from './Card';
 import type {
   ApplePayError,
   CardActionError,
   ConfirmPaymentError,
   ConfirmSetupIntentError,
   CreatePaymentMethodError,
+  CreateTokenError,
   PaymentSheetError,
   RetrievePaymentIntentError,
+  RetrieveSetupIntentError,
   StripeError,
 } from './Errors';
 import type { PaymentIntent } from './PaymentIntents';
@@ -22,8 +25,10 @@ export * from './ThreeDSecure';
 export * from './components/ApplePayButtonComponent';
 export * from './components/AuBECSDebitForm';
 export * from './components/CardFieldInput';
+export * from './Card';
 export * from './Errors';
 export * from './PaymentSheet';
+
 /**
  * @ignore
  */
@@ -61,6 +66,16 @@ export type RetrievePaymentIntentResult =
   | {
       paymentIntent?: undefined;
       error: StripeError<RetrievePaymentIntentError>;
+    };
+
+export type RetrieveSetupIntentResult =
+  | {
+      setupIntent: SetupIntent;
+      error?: undefined;
+    }
+  | {
+      setupIntent?: undefined;
+      error: StripeError<RetrieveSetupIntentError>;
     };
 
 export type ConfirmPaymentMethodResult =
@@ -127,11 +142,29 @@ export type PresentPaymentSheetResult =
       error: StripeError<PaymentSheetError>;
     };
 
+export type CreateTokenResult =
+  | {
+      token: Card.Token;
+      error?: undefined;
+    }
+  | {
+      token?: undefined;
+      error: StripeError<CreateTokenError>;
+    };
+
 export type ConfirmPaymentSheetPaymentResult = {
   error?: StripeError<PaymentSheetError>;
 };
 
-export type ApplePayResult = { error?: StripeError<ApplePayError> };
+export type ApplePayResult =
+  | {
+      paymentMethod: PaymentMethod;
+      error?: undefined;
+    }
+  | {
+      paymentMethod?: undefined;
+      error: StripeError<ApplePayError>;
+    };
 
 export interface InitStripeParams {
   publishableKey: string;

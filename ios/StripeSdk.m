@@ -34,12 +34,18 @@ RCT_EXTERN_METHOD(
                   rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
+                  createToken: (NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(
                   presentApplePay:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
                   updateApplePaySummaryItems:(NSArray *)summaryItems
+                  errorAddressFields: (NSArray *)errorAddressFields
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 
@@ -80,6 +86,12 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
+                  retrieveSetupIntent:(NSString *)clientSecret
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
                   handleCardAction:(NSString *)paymentIntentClientSecret
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
@@ -109,8 +121,6 @@ RCT_EXTERN_METHOD(
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
-RCT_EXTERN_METHOD(configure3dSecure:(NSDictionary *)params)
-
 
 RCT_EXTERN_METHOD(
                   confirmSetupIntent:(NSString *)setupIntentClientSecret

@@ -20,8 +20,16 @@ export enum CreatePaymentMethodError {
   Failed = 'Failed',
 }
 
+export enum CreateTokenError {
+  Failed = 'Failed',
+}
+
 export enum RetrievePaymentIntentError {
-  Canceled = 'Canceled',
+  Unknown = 'Unknown',
+}
+
+export enum RetrieveSetupIntentError {
+  Unknown = 'Unknown',
 }
 
 export enum ApplePayError {
@@ -35,7 +43,20 @@ export enum PaymentSheetError {
   Canceled = 'Canceled',
 }
 
+export type ErrorType =
+  | 'api_connection_error'
+  | 'api_error'
+  | 'authentication_error'
+  | 'card_error'
+  | 'idempotency_error'
+  | 'invalid_request_error'
+  | 'rate_limit_error';
+
 export interface StripeError<T> {
-  message: string;
   code: T;
+  message: string;
+  localizedMessage?: string;
+  declineCode?: string;
+  stripeErrorCode?: string;
+  type?: ErrorType;
 }

@@ -4,15 +4,20 @@ import type {
   PaymentSheet,
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
+  RetrieveSetupIntentResult,
   ConfirmPaymentMethodResult,
   HandleCardActionResult,
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
   ApplePayResult,
+  ApplePayError,
+  StripeError,
   InitPaymentSheetResult,
   PresentPaymentSheetResult,
   ConfirmPaymentSheetPaymentResult,
   ConfirmSetupIntent,
+  CreateTokenResult,
+  Card,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -21,6 +26,7 @@ import {
   confirmPaymentMethod,
   createPaymentMethod,
   retrievePaymentIntent,
+  retrieveSetupIntent,
   confirmApplePayPayment,
   confirmSetupIntent,
   createTokenForCVCUpdate,
@@ -31,6 +37,7 @@ import {
   initPaymentSheet,
   presentPaymentSheet,
   confirmPaymentSheetPayment,
+  createToken,
 } from '../functions';
 
 /**
@@ -59,9 +66,23 @@ export function useStripe() {
     []
   );
 
+  const _createToken = useCallback(
+    async (params: Card.CreateTokenParams): Promise<CreateTokenResult> => {
+      return createToken(params);
+    },
+    []
+  );
+
   const _retrievePaymentIntent = useCallback(
     async (clientSecret: string): Promise<RetrievePaymentIntentResult> => {
       return retrievePaymentIntent(clientSecret);
+    },
+    []
+  );
+
+  const _retrieveSetupIntent = useCallback(
+    async (clientSecret: string): Promise<RetrieveSetupIntentResult> => {
+      return retrieveSetupIntent(clientSecret);
     },
     []
   );
@@ -86,15 +107,21 @@ export function useStripe() {
 
   const _updateApplePaySummaryItems = useCallback(
     async (
-      summaryItems: ApplePay.CartSummaryItem[]
-    ): Promise<ApplePayResult> => {
-      return updateApplePaySummaryItems(summaryItems);
+      summaryItems: ApplePay.CartSummaryItem[],
+      errorAddressFields: Array<{
+        field: ApplePay.AddressFields;
+        message?: string;
+      }> = []
+    ): Promise<{ error?: StripeError<ApplePayError> }> => {
+      return updateApplePaySummaryItems(summaryItems, errorAddressFields);
     },
     []
   );
 
   const _confirmApplePayPayment = useCallback(
-    async (clientSecret: string): Promise<ApplePayResult> => {
+    async (
+      clientSecret: string
+    ): Promise<{ error?: StripeError<ApplePayError> }> => {
       return confirmApplePayPayment(clientSecret);
     },
     []
@@ -138,7 +165,7 @@ export function useStripe() {
 
   const _presentPaymentSheet = useCallback(
     async (
-      params: PaymentSheet.PresentParams
+      params?: PaymentSheet.PresentParams
     ): Promise<PresentPaymentSheetResult> => {
       return presentPaymentSheet(params);
     },
@@ -158,6 +185,7 @@ export function useStripe() {
 
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
+    retrieveSetupIntent: _retrieveSetupIntent,
     confirmPayment: _confirmPaymentMethod,
     createPaymentMethod: _createPaymentMethod,
     handleCardAction: _handleCardAction,
@@ -171,5 +199,6 @@ export function useStripe() {
     confirmPaymentSheetPayment: _confirmPaymentSheetPayment,
     presentPaymentSheet: _presentPaymentSheet,
     initPaymentSheet: _initPaymentSheet,
+    createToken: _createToken,
   };
 }

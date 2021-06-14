@@ -1,16 +1,25 @@
 import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
 import type { Nullable } from '../';
+import type { Card } from '../Card';
 
 export namespace CardFieldInput {
   export type Names = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
 
   export interface Details {
     last4: string;
-    expiryMonth: string;
-    expiryYear: string;
+    expiryMonth: number;
+    expiryYear: number;
     postalCode?: string;
-    brand: Brand;
+    brand: Card.Brand;
     complete: boolean;
+    /**
+     * WARNING: Full card details are only returned when the `dangerouslyGetFullCardDetails` prop
+     * on the `CardField` component is set to `true`.
+     * Only do this if you're certain that you fulfill the necessary PCI compliance requirements.
+     * Make sure that you're not mistakenly logging or storing full card details!
+     * See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance
+     */
+    number?: string;
   }
 
   export interface Styles {
@@ -23,6 +32,7 @@ export namespace CardFieldInput {
     placeholderColor?: string;
     cursorColor?: string;
     textErrorColor?: string;
+    fontFamily?: string;
   }
 
   export interface Placeholders {
@@ -31,16 +41,6 @@ export namespace CardFieldInput {
     cvc?: string;
     postalCode?: string;
   }
-
-  export type Brand =
-    | 'AmericanExpress'
-    | 'DinersClub'
-    | 'Discover'
-    | 'JCB'
-    | 'MasterCard'
-    | 'UnionPay'
-    | 'Visa'
-    | 'Unknown';
 
   export interface NativeProps {
     style?: StyleProp<ViewStyle>;

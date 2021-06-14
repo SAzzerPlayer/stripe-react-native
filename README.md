@@ -25,6 +25,11 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 
 **Pre-built payments UI (beta)**: [Learn how to integrate](https://stripe.com/docs/mobile/payments-ui-beta) Payment Sheet, our new pre-built payments UI for mobile apps. Our pre-built UI lets you accept cards, Apple Pay, and Google Pay out of the box, and includes support for saving & reusing cards. We'll be adding support for many more payment method during the beta.
 
+#### Recommended usage
+
+If you're selling digital products or services within your app, (e.g. subscriptions, in-game currencies, game levels, access to premium content, or unlocking a full version), you must use the app store's in-app purchase APIs. See [Apple's](https://developer.apple.com/app-store/review/guidelines/#payments) and [Google's](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en&ref_topic=9857752) guidelines for more information. For all other scenarios you can use this SDK to process payments via Stripe.
+
+
 ## Installation
 
 ```sh
@@ -35,7 +40,7 @@ npm install @stripe/stripe-react-native
 
 ### Expo
 
-> **Please note**: Expo is currently supported via [EAS Build](https://docs.expo.io/build/introduction/) and `expo run:[ios | android]`, but usage of this library in the Expo Go app is still in progress.
+> [Find Expo's full documentation here](https://docs.expo.io/versions/latest/sdk/stripe/).
 
 If you're using Expo, add:
 
@@ -62,11 +67,15 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 
 #### Android
 
-Android 5.0 (API level 21) and above
+- Android 5.0 (API level 21) and above
+- Android gradle plugin 4.x and above
 
 #### iOS
 
 Compatible with apps targeting iOS 11 or above.
+
+The SDK uses TypeScript features available in Babel version `7.9.0` and above.
+Alternatively use the `plugin-transform-typescript` plugin in your project.
 
 You'll need to run `pod install` in your `ios` directory to install the native dependencies.
 
@@ -88,15 +97,10 @@ function App() {
 }
 
 // PaymentScreen.ts
-import {
-  CardField,
-  CardFieldInput,
-  useStripe,
-} from '@stripe/stripe-react-native';
+import { CardField, useStripe } from '@stripe/stripe-react-native';
 
 export default function PaymentScreen() {
-  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
-  const { confirmPayment, handleCardAction } = useStripe();
+  const { confirmPayment } = useStripe();
 
   return (
     <CardField
@@ -114,7 +118,7 @@ export default function PaymentScreen() {
         marginVertical: 30,
       }}
       onCardChange={(cardDetails) => {
-        setCard(cardDetails);
+        console.log('cardDetails', cardDetails);
       }}
       onFocus={(focusedField) => {
         console.log('focusField', focusedField);
@@ -199,7 +203,9 @@ Certain payment methods require a [webhook listener](https://stripe.com/docs/pay
 
 ## Troubleshooting
 
-While building your iOS project, you may see a `Undefined symbols for architecture x86_64` error. This is caused by a `react-native init` template configuration that is not fully compatible with Swift 5.1.
+### `Undefined symbols for architecture x86_64` on iOS
+
+While building your iOS project, you may see a `Undefined symbols for architecture x86_64` error. This is caused by `react-native init` template configuration that is not fully compatible with Swift 5.1.
 
 ```
 Undefined symbols for architecture x86_64:
@@ -211,9 +217,13 @@ Undefined symbols for architecture x86_64:
 
 Follow these steps to resolve this:
 
-- Remove all entries from LIBRARY_SEARCH_PATHS in the Project configuration
-  `$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)` and `$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)`
-- Open Xcode and create a new Swift file to the project (File > New > File > Swift), give it any name (e.g. `Fix.swift`) and create a bridging header when prompted by Xcode.
+- Open your project via Xcode, go to `project -> build settings`, find `library search paths` and remove all swift related entries such as:
+  `$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)` and `$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)`.
+- Create a new Swift file to the project (File > New > File > Swift), give it any name (e.g. `Fix.swift`) and create a bridging header when prompted by Xcode.
+
+### `TypeError: null is not an object (evaluating '_NativeStripeSdk.default.initialise')` on Android
+
+You might see error this whilst initializing the `StripeProvider` component with Expo. This is caused by using an older version of Expo before stripe-react-native was [officially supported](https://github.com/stripe/stripe-react-native/issues/3#issuecomment-846225534). Updating Expo Go from the stores (or locally on simulators installed with `expo install:client:[ios|android]`) should fix the problem.
 
 If you're still having troubles, please [open an issue](https://github.com/stripe/stripe-react-native/issues/new/choose) or jump in our [developer chat](https://webchat.freenode.net/#stripe).
 

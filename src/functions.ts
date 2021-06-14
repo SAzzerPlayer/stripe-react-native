@@ -10,13 +10,17 @@ import {
   ConfirmSetupIntentResult,
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
+  CreateTokenResult,
   HandleCardActionResult,
   InitPaymentSheetResult,
   PaymentMethodCreateParams,
   PaymentSheet,
   PresentPaymentSheetResult,
   RetrievePaymentIntentResult,
+  RetrieveSetupIntentResult,
+  StripeError,
 } from './types';
+import type { Card } from './types/Card';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
@@ -56,12 +60,32 @@ export const createPaymentMethod = async (
   options: PaymentMethodCreateParams.Options = {}
 ): Promise<CreatePaymentMethodResult> => {
   try {
-    const paymentMethod = await NativeStripeSdk.createPaymentMethod(
+    const { paymentMethod, error } = await NativeStripeSdk.createPaymentMethod(
       data,
       options
     );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      paymentMethod,
+      paymentMethod: paymentMethod!,
+    };
+  } catch (error) {
+    return {
+      error,
+    };
+  }
+};
+
+export const createToken = async (
+  params: Card.CreateTokenParams
+): Promise<CreateTokenResult> => {
+  try {
+    const token = await NativeStripeSdk.createToken(params);
+    return {
+      token,
     };
   } catch (error) {
     return {
@@ -74,15 +98,43 @@ export const retrievePaymentIntent = async (
   clientSecret: string
 ): Promise<RetrievePaymentIntentResult> => {
   try {
-    const paymentIntent = await NativeStripeSdk.retrievePaymentIntent(
-      clientSecret
-    );
-    return {
+    const {
       paymentIntent,
+      error,
+    } = await NativeStripeSdk.retrievePaymentIntent(clientSecret);
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      paymentIntent: paymentIntent!,
     };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
+    };
+  }
+};
+
+export const retrieveSetupIntent = async (
+  clientSecret: string
+): Promise<RetrieveSetupIntentResult> => {
+  try {
+    const { setupIntent, error } = await NativeStripeSdk.retrieveSetupIntent(
+      clientSecret
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      setupIntent: setupIntent!,
+    };
+  } catch (error) {
+    return {
+      error,
     };
   }
 };
@@ -93,17 +145,22 @@ export const confirmPaymentMethod = async (
   options: PaymentMethodCreateParams.Options = {}
 ): Promise<ConfirmPaymentMethodResult> => {
   try {
-    const paymentIntent = await NativeStripeSdk.confirmPaymentMethod(
+    const { paymentIntent, error } = await NativeStripeSdk.confirmPaymentMethod(
       paymentIntentClientSecret,
       data,
       options
     );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      paymentIntent,
+      paymentIntent: paymentIntent!,
     };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -117,38 +174,51 @@ export const presentApplePay = async (
 ): Promise<ApplePayResult> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: {
+      error: createError({
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      },
+      }),
     };
   }
 
   try {
-    await NativeStripeSdk.presentApplePay(params);
-
-    return {};
+    const { paymentMethod, error } = await NativeStripeSdk.presentApplePay(
+      params
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return { paymentMethod: paymentMethod! };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
 
 export const updateApplePaySummaryItems = async (
-  summaryItems: ApplePay.CartSummaryItem[]
-): Promise<ApplePayResult> => {
+  summaryItems: ApplePay.CartSummaryItem[],
+  errorAddressFields: Array<{
+    field: ApplePay.AddressFields;
+    message?: string;
+  }> = []
+): Promise<{ error?: StripeError<ApplePayError> }> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: {
+      error: createError({
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      },
+      }),
     };
   }
 
   try {
-    await NativeStripeSdk.updateApplePaySummaryItems(summaryItems);
+    await NativeStripeSdk.updateApplePaySummaryItems(
+      summaryItems,
+      errorAddressFields
+    );
 
     return {};
   } catch (error) {
@@ -160,13 +230,13 @@ export const updateApplePaySummaryItems = async (
 
 export const confirmApplePayPayment = async (
   clientSecret: string
-): Promise<ApplePayResult> => {
+): Promise<{ error?: StripeError<ApplePayError> }> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: {
+      error: createError({
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      },
+      }),
     };
   }
   try {
@@ -183,11 +253,16 @@ export const handleCardAction = async (
   paymentIntentClientSecret: string
 ): Promise<HandleCardActionResult> => {
   try {
-    const paymentIntent = await NativeStripeSdk.handleCardAction(
+    const { paymentIntent, error } = await NativeStripeSdk.handleCardAction(
       paymentIntentClientSecret
     );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      paymentIntent,
+      paymentIntent: paymentIntent!,
     };
   } catch (error) {
     return {
@@ -202,14 +277,18 @@ export const confirmSetupIntent = async (
   options: ConfirmSetupIntent.Options = {}
 ): Promise<ConfirmSetupIntentResult> => {
   try {
-    const setupIntent = await NativeStripeSdk.confirmSetupIntent(
+    const { setupIntent, error } = await NativeStripeSdk.confirmSetupIntent(
       paymentIntentClientSecret,
       data,
       options
     );
-
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      setupIntent,
+      setupIntent: setupIntent!,
     };
   } catch (error) {
     return {
@@ -222,10 +301,16 @@ export const createTokenForCVCUpdate = async (
   cvc: string
 ): Promise<CreateTokenForCVCUpdateResult> => {
   try {
-    const tokenId = await NativeStripeSdk.createTokenForCVCUpdate(cvc);
-
+    const { tokenId, error } = await NativeStripeSdk.createTokenForCVCUpdate(
+      cvc
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      tokenId,
+      tokenId: tokenId!,
     };
   } catch (error) {
     return {
@@ -243,8 +328,14 @@ export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
 ): Promise<InitPaymentSheetResult> => {
   try {
-    const paymentOption = await NativeStripeSdk.initPaymentSheet(params);
-
+    const { paymentOption, error } = await NativeStripeSdk.initPaymentSheet(
+      params
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
       paymentOption,
     };
@@ -256,13 +347,19 @@ export const initPaymentSheet = async (
 };
 
 export const presentPaymentSheet = async (
-  params: PaymentSheet.PresentParams
+  params?: PaymentSheet.PresentParams
 ): Promise<PresentPaymentSheetResult> => {
   try {
-    const response = await NativeStripeSdk.presentPaymentSheet(params);
-
+    const { paymentOption, error } = await NativeStripeSdk.presentPaymentSheet(
+      params
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      paymentOption: response.paymentOption,
+      paymentOption: paymentOption,
     };
   } catch (error) {
     return {
@@ -273,8 +370,12 @@ export const presentPaymentSheet = async (
 
 export const confirmPaymentSheetPayment = async (): Promise<ConfirmPaymentSheetPaymentResult> => {
   try {
-    await NativeStripeSdk.confirmPaymentSheetPayment();
-
+    const { error } = await NativeStripeSdk.confirmPaymentSheetPayment();
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {};
   } catch (error) {
     return {
