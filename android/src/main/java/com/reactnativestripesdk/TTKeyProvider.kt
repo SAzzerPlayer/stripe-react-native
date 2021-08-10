@@ -51,8 +51,7 @@ internal class TTKeyProvider: EphemeralKeyProvider {
           backendApi
             .createEphemeralKey(ttApiKey,
               ttApiVersion,
-              "user_session_id=$sessionId",
-              hashMapOf("stripe_api_version" to apiVersion))
+              sessionId)
             .string()
         }
 

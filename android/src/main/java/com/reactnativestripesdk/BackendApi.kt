@@ -12,10 +12,10 @@ import retrofit2.http.POST
 interface BackendApi {
 
   @FormUrlEncoded
-  @POST("stripe_ephemeral_key")
+  @POST("ephemeral-key")
   suspend fun createEphemeralKey(@Header("Token-Transit-Api-Key") ttApiKey: String? = "",
                                  @Header("Token-Transit-Api-Version") ttApiVersion: String? = "",
-                                 @Header("Cookie") sessionCookie: String,
-                                 @FieldMap apiVersionMap: HashMap<String, String>): ResponseBody
+                                 @Header("token-transit-session-id") sessionId: String,
+                                 @FieldMap apiVersionMap: HashMap<String, String> = HashMap()): ResponseBody
 
 }
