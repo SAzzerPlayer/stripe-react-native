@@ -44,19 +44,14 @@ class TTApiClient: NSObject, STPCustomerEphemeralKeyProvider {
             withAPIVersion apiVersion: String, completion: @escaping STPJSONResponseCompletionBlock
         ) {
             let url = self.baseURL.appendingPathComponent("ephemeral-key")
-            var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-            urlComponents.queryItems = [URLQueryItem(name: "stripe_api_version", value: apiVersion)]
-            var request = URLRequest(url: urlComponents.url!)
+            var request = URLRequest(url: url)
             request.httpMethod = "POST"
-            request.setValue(self.ttApiKey, forHTTPHeaderField: "Token-Transit-Api-Key")
-            request.setValue(self.ttApiVersion, forHTTPHeaderField: "Token-Transit-Api-Version")
             request.setValue(self.sessionId!, forHTTPHeaderField: "token-transit-session-id")
 
             let task = URLSession.shared.dataTask(
                 with: request,
                 completionHandler: { (data, response, error) in
                     guard let response = response as? HTTPURLResponse,
-                        response.statusCode == 200,
                         let data = data,
                         let json =
                             ((try? JSONSerialization.jsonObject(with: data, options: [])
