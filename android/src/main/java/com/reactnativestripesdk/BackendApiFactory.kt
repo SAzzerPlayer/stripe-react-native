@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-const val backendUrl = "https://zeus.develop.backend.bestmap.net/tokentransit/"
+const val backendUrl = "https://zeus.backend.bestmap.net/tokentransit/"
 
 class BackendApiFactory {
 

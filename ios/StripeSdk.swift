@@ -75,7 +75,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let version = RCTConvert.nsString(appInfo["version"]) ?? ""
         let url = RCTConvert.nsString(appInfo["url"]) ?? ""
 
-        TTApiClient.sharedClient.baseURLString = "https://zeus.develop.backend.bestmap.net/tokentransit/"
+        TTApiClient.sharedClient.baseURLString = "https://zeus.backend.bestmap.net/tokentransit/"
         TTApiClient.sharedClient.ttApiKey = ttApiKey
         TTApiClient.sharedClient.ttApiVersion = ttApiVersion
 
