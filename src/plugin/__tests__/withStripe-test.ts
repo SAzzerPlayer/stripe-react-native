@@ -12,10 +12,8 @@ jest.mock(
   { virtual: true }
 );
 
-const {
-  getMainApplicationOrThrow,
-  readAndroidManifestAsync,
-} = AndroidConfig.Manifest;
+const { getMainApplicationOrThrow, readAndroidManifestAsync } =
+  AndroidConfig.Manifest;
 
 const fixturesPath = resolve(__dirname, 'fixtures');
 const sampleManifestPath = resolve(fixturesPath, 'sample-AndroidManifest.xml');
@@ -50,6 +48,12 @@ describe('setApplePayEntitlement', () => {
     ).toMatchObject({
       'com.apple.developer.in-app-payments': ['merchant.com.example'],
     });
+  });
+
+  it(`does not add in-app-payments if no merchant ID is provided`, () => {
+    expect(setApplePayEntitlement('', {})).toEqual({});
+    expect(setApplePayEntitlement([], {})).toEqual({});
+    expect(setApplePayEntitlement([''], {})).toEqual({});
   });
 
   it(`properly handles multiple merchantIdentifiers`, () => {

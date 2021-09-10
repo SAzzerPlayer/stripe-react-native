@@ -5,7 +5,7 @@ import type {
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
-  ConfirmPaymentMethodResult,
+  ConfirmPaymentResult,
   HandleCardActionResult,
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
@@ -18,12 +18,17 @@ import type {
   ConfirmSetupIntent,
   CreateTokenResult,
   Card,
+  PayWithGooglePayResult,
+  GooglePayInitResult,
+  GooglePay,
+  CreateGooglePayPaymentMethodResult,
+  OpenApplePaySetupResult,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
 import {
-  confirmPaymentMethod,
+  confirmPayment,
   createPaymentMethod,
   retrievePaymentIntent,
   retrieveSetupIntent,
@@ -38,13 +43,19 @@ import {
   presentPaymentSheet,
   confirmPaymentSheetPayment,
   createToken,
+  initGooglePay,
+  createGooglePayPaymentMethod,
+  presentGooglePay,
+  openApplePaySetup,
 } from '../functions';
 
 /**
  * useStripe hook
  */
 export function useStripe() {
-  const [isApplePaySupported, setApplePaySupported] = useState(false);
+  const [isApplePaySupported, setApplePaySupported] = useState<boolean | null>(
+    null
+  );
 
   useEffect(() => {
     async function checkApplePaySupport() {
@@ -87,13 +98,13 @@ export function useStripe() {
     []
   );
 
-  const _confirmPaymentMethod = useCallback(
+  const _confirmPayment = useCallback(
     async (
       paymentIntentClientSecret: string,
       data: PaymentMethodCreateParams.Params,
       options: PaymentMethodCreateParams.Options = {}
-    ): Promise<ConfirmPaymentMethodResult> => {
-      return confirmPaymentMethod(paymentIntentClientSecret, data, options);
+    ): Promise<ConfirmPaymentResult> => {
+      return confirmPayment(paymentIntentClientSecret, data, options);
     },
     []
   );
@@ -163,18 +174,15 @@ export function useStripe() {
     []
   );
 
-  const _presentPaymentSheet = useCallback(
-    async (
-      params?: PaymentSheet.PresentParams
-    ): Promise<PresentPaymentSheetResult> => {
-      return presentPaymentSheet(params);
-    },
-    []
-  );
+  const _presentPaymentSheet =
+    useCallback(async (): Promise<PresentPaymentSheetResult> => {
+      return presentPaymentSheet();
+    }, []);
 
-  const _confirmPaymentSheetPayment = useCallback(async (): Promise<ConfirmPaymentSheetPaymentResult> => {
-    return confirmPaymentSheetPayment();
-  }, []);
+  const _confirmPaymentSheetPayment =
+    useCallback(async (): Promise<ConfirmPaymentSheetPaymentResult> => {
+      return confirmPaymentSheetPayment();
+    }, []);
 
   const _handleURLCallback = useCallback(
     async (url: string): Promise<boolean> => {
@@ -183,10 +191,40 @@ export function useStripe() {
     []
   );
 
+  const _initGooglePay = useCallback(
+    async (params: GooglePay.InitParams): Promise<GooglePayInitResult> => {
+      return initGooglePay(params);
+    },
+    []
+  );
+
+  const _presentGooglePay = useCallback(
+    async (
+      params: GooglePay.PresentGooglePayParams
+    ): Promise<PayWithGooglePayResult> => {
+      return presentGooglePay(params);
+    },
+    []
+  );
+
+  const _createGooglePayPaymentMethod = useCallback(
+    async (
+      params: GooglePay.CreatePaymentMethodParams
+    ): Promise<CreateGooglePayPaymentMethodResult> => {
+      return createGooglePayPaymentMethod(params);
+    },
+    []
+  );
+
+  const _openApplePaySetup =
+    useCallback(async (): Promise<OpenApplePaySetupResult> => {
+      return openApplePaySetup();
+    }, []);
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
-    confirmPayment: _confirmPaymentMethod,
+    confirmPayment: _confirmPayment,
     createPaymentMethod: _createPaymentMethod,
     handleCardAction: _handleCardAction,
     isApplePaySupported: isApplePaySupported,
@@ -200,5 +238,9 @@ export function useStripe() {
     presentPaymentSheet: _presentPaymentSheet,
     initPaymentSheet: _initPaymentSheet,
     createToken: _createToken,
+    initGooglePay: _initGooglePay,
+    presentGooglePay: _presentGooglePay,
+    createGooglePayPaymentMethod: _createGooglePayPaymentMethod,
+    openApplePaySetup: _openApplePaySetup,
   };
 }

@@ -8,7 +8,7 @@ import type {
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
-  ConfirmPaymentMethodResult,
+  ConfirmPaymentResult,
   HandleCardActionResult,
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
@@ -17,6 +17,12 @@ import type {
   ConfirmPaymentSheetPaymentResult,
   Card,
   ApplePayResult,
+  CreateTokenResult,
+  GooglePayInitResult,
+  PayWithGooglePayResult,
+  CreateGooglePayPaymentMethodResult,
+  GooglePay,
+  OpenApplePaySetupResult,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -36,11 +42,11 @@ type NativeStripeSdkType = {
   handleCardAction(
     paymentIntentClientSecret: string
   ): Promise<HandleCardActionResult>;
-  confirmPaymentMethod(
+  confirmPayment(
     paymentIntentClientSecret: string,
     data: PaymentMethodCreateParams.Params,
     options: PaymentMethodCreateParams.Options
-  ): Promise<ConfirmPaymentMethodResult>;
+  ): Promise<ConfirmPaymentResult>;
   isApplePaySupported(): Promise<boolean>;
   presentApplePay(params: ApplePay.PresentParams): Promise<ApplePayResult>;
   confirmApplePayPayment(clientSecret: string): Promise<void>;
@@ -63,13 +69,19 @@ type NativeStripeSdkType = {
   initPaymentSheet(
     params: PaymentSheet.SetupParams
   ): Promise<InitPaymentSheetResult>;
-  presentPaymentSheet(
-    params?: PaymentSheet.PresentParams
-  ): Promise<PresentPaymentSheetResult>;
+  presentPaymentSheet(): Promise<PresentPaymentSheetResult>;
   confirmPaymentSheetPayment(): Promise<ConfirmPaymentSheetPaymentResult>;
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;
-  createToken(params: Card.CreateTokenParams): Promise<Card.Token>;
+  createToken(params: Card.CreateTokenParams): Promise<CreateTokenResult>;
+  initGooglePay(params: GooglePay.InitParams): Promise<GooglePayInitResult>;
+  presentGooglePay(
+    params: GooglePay.PresentGooglePayParams
+  ): Promise<PayWithGooglePayResult>;
+  createGooglePayPaymentMethod(
+    params: GooglePay.CreatePaymentMethodParams
+  ): Promise<CreateGooglePayPaymentMethodResult>;
+  openApplePaySetup(): Promise<OpenApplePaySetupResult>;
 };
 
 const { StripeSdk } = NativeModules;

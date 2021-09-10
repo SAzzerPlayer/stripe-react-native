@@ -42,6 +42,9 @@ export namespace CardFieldInput {
     postalCode?: string;
   }
 
+  /**
+   * @ignore
+   */
   export interface NativeProps {
     style?: StyleProp<ViewStyle>;
     value?: Partial<Details>;
@@ -53,5 +56,11 @@ export namespace CardFieldInput {
     ): void;
     cardStyle?: Styles;
     placeholder?: Placeholders;
+  }
+
+  export interface Methods {
+    focus(): void;
+    blur(): void;
+    clear(): void;
   }
 }
