@@ -18,10 +18,19 @@ import com.stripe.android.*
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.model.*
+import androidx.annotation.Nullable
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.json.JSONArray
+import org.json.JSONObject
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.CoroutineScope
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.wallet.*
+
 
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -32,7 +41,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     return "StripeSdk"
   }
   private lateinit var stripe: Stripe
-
+  private lateinit var googlePayHelper: GooglePayHelper
   private lateinit var publishableKey: String
   private var stripeAccountId: String? = null
   private var paymentSheetFragment: PaymentSheetFragment? = null
@@ -396,10 +405,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       currentActivity as AppCompatActivity,
       LOAD_PAYMENT_DATA_REQUEST_CODE
     )
-  }
-
-  companion object {
-    private const val LOAD_PAYMENT_DATA_REQUEST_CODE = 53
   }
 
   @ReactMethod
@@ -789,5 +794,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   companion object {
     const val NAME = "StripeSdk"
+    private const val LOAD_PAYMENT_DATA_REQUEST_CODE = 53
   }
 }
