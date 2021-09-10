@@ -2,7 +2,7 @@ import PassKit
 import Stripe
 
 @objc(StripeSdk)
-class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
+class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate, STPPaymentContextDelegate, PKPaymentAuthorizationViewControllerDelegate {
     public var cardFieldView: CardFieldView? = nil
     public var cardFormView: CardFormView? = nil
 
@@ -110,7 +110,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
 
             self.paymentContext = STPPaymentContext.init(customerContext: self.customerContext!, configuration: paymentConfig, theme: STPTheme.defaultTheme)
 
-            self.paymentContext?.delegate = self as STPPaymentContextDelegate
+            self.paymentContext?.delegate = self
             self.paymentContext?.hostViewController = viewController
 
             self.paymentContext?.presentPaymentOptionsViewController()
