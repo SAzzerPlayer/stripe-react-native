@@ -6,12 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.AsyncTask
-import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.stripe.android.*
@@ -23,7 +21,6 @@ import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
@@ -92,7 +89,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
         else -> {
           if (::stripe.isInitialized) {
-            paymentSession.handlePaymentData(requestCode, resultCode, data)
+            if(::paymentSession.isInitialized) {
+              paymentSession.handlePaymentData(requestCode, resultCode, data)
+            }
             stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
               override fun onSuccess(result: SetupIntentResult) {
                 val setupIntent = result.intent
@@ -364,7 +363,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
-    
+
     googlePayHelper = GooglePayHelper(
       currentActivity as AppCompatActivity,
       GooglePayConfig(reactApplicationContext).tokenizationSpecification,
@@ -630,24 +629,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     if (activity != null) {
       handleCardActionPromise = promise
       stripe.handleNextActionForPayment(activity, paymentIntentClientSecret)
-    }
-  }
-
-  private fun payWithWeChatPay(paymentIntentClientSecret: String, appId: String) {
-    val activity = currentActivity as ComponentActivity
-
-    activity.lifecycleScope.launch {
-      stripe.createPaymentMethod(PaymentMethodCreateParams.createWeChatPay()).id?.let { paymentMethodId ->
-        val confirmPaymentIntentParams =
-          ConfirmPaymentIntentParams.createWithPaymentMethodId(
-            paymentMethodId = paymentMethodId,
-            clientSecret = paymentIntentClientSecret,
-            paymentMethodOptions = PaymentMethodOptionsParams.WeChatPay(
-              appId
-            )
-          )
-        stripe.confirmPayment(activity, confirmPaymentIntentParams)
-      }
     }
   }
 
